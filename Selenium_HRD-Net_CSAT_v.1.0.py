@@ -59,7 +59,7 @@ while rowSt <= 500:
 
     # 최근 열린 탭으로 전환
     crntTab = driver.window_handles[-1]
-    driver.switch_to_window(window_name=crntTab)
+    driver.switch_to.window(window_name=crntTab)
 
     # 명시적 대기 (5초 동안 0.5초씩 element를 찾을 수 있는지 시도)
     try:
@@ -85,14 +85,14 @@ while rowSt <= 500:
         dpth_2_dd = dpth_1_dl.find_elements_by_tag_name("dd")
         print(dpth_2_dd[0].text)
 
-        # 최근 열린 탭 종료 후 기존 탭 활성화
-        driver.close()
-        firstTab = driver.window_handles[0]
-        driver.switch_to_window(window_name=firstTab)
+    # 최근 열린 탭 종료 후 기존 탭 활성화
+    driver.close()
+    firstTab = driver.window_handles[0]
+    driver.switch_to.window(window_name=firstTab)
 
-        # 훈련과정명 공란
-        srchBox1 = driver.find_element_by_xpath('//*[@id="keyword2"]')
-        srchBox1.clear()
+    # 훈련과정명 공란
+    srchBox1 = driver.find_element_by_xpath('//*[@id="keyword2"]')
+    srchBox1.clear()
 
 
 
