@@ -1,5 +1,7 @@
-from bs4 import BeautifulSoup
 from openpyxl import load_workbook
+
+from bs4 import BeautifulSoup
+from bs4 import re
 
 from selenium import webdriver
 from selenium.webdriver import ActionChains
@@ -64,6 +66,18 @@ while rowStart <= 500:
         )
     finally:
 
+        # currentUrl = driver.current_url
+        # driver.get(currentUrl)
+        # html = driver.page_source
+        # bsObj = BeautifulSoup(html, 'html.parser')
+        # srch1 = driver.find_elements_by_xpath('//*[@id="infoDiv"]/div[1]/dl/dd/span[1]')
+        # srch2 = driver.find_elements_by_class_name('ment')
+        # for sample1 in srch1:
+        #     print(sample1.text)
+        #
+        # for sample2 in srch2:
+        #     print(sample2.get_attribute('text'))
+
         # 만족도/수강후기 스크롤
         scrollDown = driver.find_element_by_xpath('//*[@id="infoTab4"]/button')
         ActionChains(driver).move_to_element(scrollDown).perform()
@@ -72,4 +86,17 @@ while rowStart <= 500:
         review = driver.find_element_by_xpath('//*[@id="infoTab4"]/button')
         review.click()
 
-        # 만족도 복사
+        # HTML 추출 후 만족도 정보와 후기 정보 찾기
+        html = driver.page_source
+        bsObj = BeautifulSoup(html, 'html.parser')
+        srch1 = bsObj.find_all("span", {"class": "num"}, limit=1)
+        srch2 = bsObj.find_all("p", {"class": "ment"})
+
+        # 호출한 엑셀 파일에 만족도 정보와 후기 정보를 각각 A열, B열 1행에 입력
+        wrksht1 = workbook.active # 현재 참조중인 엑셀 파일
+        for j in srch1:
+            wrksht1['A'+i] = j.text # A열 i번째 셀에 srch1 정보의 text만 추출하여 입력
+        for j in srch2:
+            wrksht1['B'+i] = j.text # B열 i번째 셀에 srch2 정보의 text만 추출하여 입력
+        rowStart = rowStart + 1
+wrksht1.save('C:/Users/git_200101/Desktop/sample.xlsx') # 엑셀 파일 저장
