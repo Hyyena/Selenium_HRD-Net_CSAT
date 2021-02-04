@@ -92,7 +92,7 @@ while rowSt <= 500:
         firstTab = driver.window_handles[0]
         driver.switch_to.window(window_name=firstTab)
 
-        if rowSt == 4:
+        if rowSt == 5:
             print(dpth_2_dd[0].text)
             break
 
