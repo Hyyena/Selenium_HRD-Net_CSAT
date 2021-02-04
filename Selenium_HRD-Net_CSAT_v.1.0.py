@@ -37,11 +37,13 @@ sht = wb['sheet1']
 
 rowSt = 3 # 행 시작 번호 입력
 while rowSt <= 500:
+    rowSt = rowSt + 1
     i = str(rowSt)
     rowSrch = sht['C' + i].value # C열 i번째 셀값
 
     # 훈련과정명 입력
     srchBox2 = driver.find_element_by_xpath('//*[@id="keyword1"]')
+    srchBox2.clear()
     srchBox2.send_keys(rowSrch)
 
     # 개강일자 입력
@@ -85,15 +87,14 @@ while rowSt <= 500:
         dpth_2_dd = dpth_1_dl.find_elements_by_tag_name("dd")
         print(dpth_2_dd[0].text)
 
-    # 최근 열린 탭 종료 후 기존 탭 활성화
-    driver.close()
-    firstTab = driver.window_handles[0]
-    driver.switch_to.window(window_name=firstTab)
+        # 최근 열린 탭 종료 후 기존 탭 활성화
+        driver.close()
+        firstTab = driver.window_handles[0]
+        driver.switch_to.window(window_name=firstTab)
 
-    # 훈련과정명 공란
-    srchBox1 = driver.find_element_by_xpath('//*[@id="keyword2"]')
-    srchBox1.clear()
-
+        if rowSt == 4:
+            print(dpth_2_dd[0].text)
+            break
 
 
         # html = driver.page_source
