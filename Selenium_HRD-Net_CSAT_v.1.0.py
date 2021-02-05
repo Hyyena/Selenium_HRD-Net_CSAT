@@ -6,16 +6,20 @@ from bs4 import re
 
 from selenium import webdriver
 from selenium.webdriver import ActionChains
-
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
-from selenium. webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait
+
+from datetime import datetime
 
 # 주소 입력
 URL = 'https://www.hrd.go.kr/hrdp/ti/ptiao/PTIAO0100L.do'
+
+# 창 숨기기
+# driverOpt = webdriver.ChromeOptions()
+# driverOpt.add_argument('headless')
 
 # 불러오기(Driver & Web Load)
 driver = webdriver.Chrome(executable_path='chromedriver')
@@ -23,96 +27,100 @@ driver.get(url=URL)
 driver.maximize_window() # 전체화면
 driver.window_handles # Tab List
 
-# 훈련 기관/과정 검색 클릭
-chkBox = driver.find_element_by_xpath('//*[@id="keywordType2"]')
-chkBox.click()
+def crawl():
 
-# 훈련기관명 입력
-srchBox1 = driver.find_element_by_xpath('//*[@id="keyword2"]')
-srchBox1.send_keys('그린컴퓨터')
+    # 엑셀 연동
+    wb = load_workbook(filename='test.xlsx') # 파일명 입력
+    sht = wb['sheet1']
 
-# 엑셀 연동
-wb = load_workbook(filename='test.xlsx') # 파일명 입력
-sht = wb['sheet1']
+    colList = ['연번', '훈련과정명', '주훈련대상', '회차', '훈련시작일', '훈련종료일', '수강평', '만족도']
+    date = '05'
+    # strDate = str(date)
+    with open('HRD-Net_CSAT_'+date+'.csv', 'w', -1, newline='') as f:
+        w = csv.writer(f)
+        w.writerow(colList)
 
-rowSt = 3 # 행 시작 번호 입력
-while rowSt <= 500:
-    rowSt = rowSt + 1
-    i = str(rowSt)
-    rowSrch = sht['C' + i].value # C열 i번째 셀값
+        rowSt = 3 # 행 시작 번호 입력
+        while rowSt <= 500:
+            i = str(rowSt)
+            rowSrch = sht['C' + i].value # C열 i번째 셀값
+            if rowSrch is None:
+                break
+            rowSt = rowSt + 1
 
-    # 훈련과정명 입력
-    srchBox2 = driver.find_element_by_xpath('//*[@id="keyword1"]')
-    srchBox2.clear()
-    srchBox2.send_keys(rowSrch)
+            # 훈련 기관/과정 검색 클릭
+            keywordBlck = driver.find_element_by_xpath('//*[@id="searchForm"]/div/div[2]/div[1]/fieldset/div[1]/dl[1]/dd/div[2]')
+            chkBox = driver.find_element_by_xpath('//*[@id="keywordType2"]')
+            if keywordBlck.value_of_css_property('display') is 'inline-block': # 작업중
+                chkBox.click()
 
-    # 개강일자 입력
-    srchBox3 = driver.find_element_by_xpath('//*[@id="startDate"]')
-    srchBox3.clear()
-    srchBox3.send_keys('20200101')
+            # 훈련기관명 입력
+            srchBox1 = driver.find_element_by_xpath('//*[@id="keyword2"]')
+            srchBox1.send_keys('그린컴퓨터')
 
-    # 선택항목 검색 클릭
-    srch = driver.find_element_by_xpath('//*[@id="searchForm"]/div/div[2]/div[1]/fieldset/div[2]/div/button[2]')
-    srch.click()
+            # 훈련과정명 입력
+            srchBox2 = driver.find_element_by_xpath('//*[@id="keyword1"]')
+            srchBox2.clear()
+            srchBox2.send_keys(rowSrch)
 
-    # 과정 클릭
-    post = driver.find_element_by_xpath('//*[@id="searchForm"]/div/div[2]/div[8]/ul/li/div[2]/p/a')
-    post.click()
+            # 개강일자 입력
+            srchBox3 = driver.find_element_by_xpath('//*[@id="startDate"]')
+            srchBox3.clear()
+            srchBox3.send_keys('20200101')
 
-    # 최근 열린 탭으로 전환
-    crntTab = driver.window_handles[-1]
-    driver.switch_to.window(window_name=crntTab)
+            # 선택항목 검색 클릭
+            srch = driver.find_element_by_xpath('//*[@id="searchForm"]/div/div[2]/div[1]/fieldset/div[2]/div/button[2]')
+            srch.click()
 
-    # 명시적 대기 (5초 동안 0.5초씩 element를 찾을 수 있는지 시도)
-    try:
-        elem = WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="infoTab4"]/button' ))
-        )
-    finally:
+            # 과정 클릭
+            post = driver.find_element_by_xpath('//*[@id="searchForm"]/div/div[2]/div[8]/ul/li/div[2]/p/a')
+            post.click()
 
-        # 만족도/수강후기 스크롤
-        scrllDwn = driver.find_element_by_xpath('//*[@id="infoTab4"]/button')
-        ActionChains(driver).move_to_element(scrllDwn).perform()
+            # 최근 열린 탭으로 전환
+            crntTab = driver.window_handles[-1]
+            driver.switch_to.window(window_name=crntTab)
 
-        # 만족도/수강후기 클릭
-        rvw = driver.find_element_by_xpath('//*[@id="infoTab4"]/button')
-        rvw.click()
+            # 명시적 대기 (5초 동안 0.5초씩 element를 찾을 수 있는지 시도)
+            try:
+                elem = WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((By.XPATH, '//*[@id="infoTab4"]/button' ))
+                )
+            finally:
 
-        # 최근 열린 탭 URL 저장
-        crntUrl = driver.current_url
-        driver.get(crntUrl)
+                # 만족도/수강후기 스크롤
+                scrllDwn = driver.find_element_by_xpath('//*[@id="infoTab4"]/button')
+                ActionChains(driver).move_to_element(scrllDwn).perform()
 
-        # 만족도 Data 추출
-        dpth_1_dl = driver.find_element_by_xpath('//*[@id="infoDiv"]/div[1]/dl')
-        dpth_2_dd = dpth_1_dl.find_elements_by_tag_name("dd")
-        print(dpth_2_dd[0].text)
+                # 만족도/수강후기 클릭
+                rvw = driver.find_element_by_xpath('//*[@id="infoTab4"]/button')
+                rvw.click()
 
-        # 최근 열린 탭 종료 후 기존 탭 활성화
-        driver.close()
-        firstTab = driver.window_handles[0]
-        driver.switch_to.window(window_name=firstTab)
+                # 만족도 Data 추출
+                srch1 = driver.find_element_by_xpath('//*[@id="infoDiv"]/div[1]/dl/dd/span[1]')
+                print(srch1.text)
+                # for s1 in srch1:
+                #     s1Row = s1.text
+                #     w.writerow(s1Row)
 
-        if rowSt == 5:
-            print(dpth_2_dd[0].text)
-            break
+                # 수강후기 Data 추출
+                dpth_1_dl = driver.find_element_by_xpath('//*[@id="tbodyEpilogue"]')
+                dpth_2_dd = dpth_1_dl.find_elements_by_tag_name('dd')
+                for dd in dpth_2_dd:
+                    ddRow = dd.text
+                    print(ddRow)
+                #     w.writerow(ddRow)
 
+            # 최근 열린 탭 종료 후 기존 탭 활성화
+            driver.close()
+            firstTab = driver.window_handles[0]
+            driver.switch_to.window(window_name=firstTab)
 
-        # html = driver.page_source
-        # bsObj = BeautifulSoup(html, 'html.parser')
-        # srch1 = driver.find_elements_by_xpath('//*[@id="infoDiv"]/div[1]/dl/dd/span[1]')
-        # srch2 = driver.find_elements_by_class_name('ment')
-        # for sample1 in srch1:
-        #     print(sample1.text)
-        #
-        # for sample2 in srch2:
-        #     print(sample2.get_attribute('text'))
+def main():
+    crawl()
 
-#         # HTML 추출 후 만족도 정보와 후기 정보 찾기
-#         html = driver.page_source
-#         bsObj = BeautifulSoup(html, 'html.parser')
-#         srch1 = bsObj.find_all("span", {"class": "num"}, limit=1)
-#         srch2 = bsObj.find_all("p", {"class": "ment"})
-#
+if __name__ == '__main__':
+    main()
+
 #         # 호출한 엑셀 파일에 만족도 정보와 후기 정보를 각각 A열, B열 1행에 입력
 #         wrksht1 = workbook.active # 현재 참조중인 엑셀 파일
 #         for j in srch1:
