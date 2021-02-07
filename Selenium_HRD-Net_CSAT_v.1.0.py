@@ -36,7 +36,7 @@ def crawl():
     colList = ['연번', '훈련과정명', '주훈련대상', '회차', '훈련시작일', '훈련종료일', '수강평', '만족도']
     date = '05'
     # strDate = str(date)
-    with open('HRD-Net_CSAT_'+date+'.csv', 'w', -1, newline='') as f:
+    with open('HRD-Net_CSAT_'+date+'.xlsx', 'w', -1, newline='') as f:
         w = csv.writer(f)
         w.writerow(colList)
 
@@ -49,13 +49,14 @@ def crawl():
             rowSt = rowSt + 1
 
             # 훈련 기관/과정 검색 클릭
-            keywordBlck = driver.find_element_by_xpath('//*[@id="searchForm"]/div/div[2]/div[1]/fieldset/div[1]/dl[1]/dd/div[2]')
+            keyBlck = driver.find_element_by_xpath('//*[@id="searchForm"]/div/div[2]/div[1]/fieldset/div[1]/dl[1]/dd/div[1]').is_displayed()
             chkBox = driver.find_element_by_xpath('//*[@id="keywordType2"]')
-            if keywordBlck.value_of_css_property('display') is 'inline-block': # 작업중
+            if not keyBlck: # 작업중
                 chkBox.click()
 
             # 훈련기관명 입력
             srchBox1 = driver.find_element_by_xpath('//*[@id="keyword2"]')
+            srchBox1.clear()
             srchBox1.send_keys('그린컴퓨터')
 
             # 훈련과정명 입력
@@ -97,10 +98,10 @@ def crawl():
 
                 # 만족도 Data 추출
                 srch1 = driver.find_element_by_xpath('//*[@id="infoDiv"]/div[1]/dl/dd/span[1]')
-                print(srch1.text)
-                # for s1 in srch1:
-                #     s1Row = s1.text
-                #     w.writerow(s1Row)
+                # print(srch1.text)
+                for s1 in srch1:
+                    s1Row = s1.text
+                    w.writerow(s1Row)
 
                 # 수강후기 Data 추출
                 dpth_1_dl = driver.find_element_by_xpath('//*[@id="tbodyEpilogue"]')
