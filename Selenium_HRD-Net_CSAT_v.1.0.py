@@ -36,7 +36,7 @@ def crawl():
     colList = ['연번', '훈련과정명', '주훈련대상', '회차', '훈련시작일', '훈련종료일', '수강평', '만족도']
     date = '05'
     # strDate = str(date)
-    with open('HRD-Net_CSAT_'+date+'.xlsx', 'w', -1, newline='') as f:
+    with open('HRD-Net_CSAT_'+date+'.csv', 'w', -1, newline='') as f:
         w = csv.writer(f)
         w.writerow(colList)
 
