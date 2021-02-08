@@ -99,9 +99,9 @@ def crawl():
                 # 만족도 Data 추출
                 srch1 = driver.find_element_by_xpath('//*[@id="infoDiv"]/div[1]/dl/dd/span[1]')
                 # print(srch1.text)
-                for s1 in srch1:
-                    s1Row = s1.text
-                    w.writerow(s1Row)
+                # for s1 in srch1:
+                #     s1Row = s1.text
+                    # w.writerow(s1RowList)
 
                 # 수강후기 Data 추출
                 dpth_1_dl = driver.find_element_by_xpath('//*[@id="tbodyEpilogue"]')
