@@ -1,4 +1,6 @@
 import csv
+import pandas as pd
+import numpy as np
 from openpyxl import load_workbook
 
 from bs4 import BeautifulSoup
@@ -29,14 +31,25 @@ driver.window_handles # Tab List
 
 def crawl():
 
-    # 엑셀 연동
+    # 엑셀 연동 (openpyxl)
     wb = load_workbook(filename='test.xlsx') # 파일명 입력
     sht = wb['sheet1']
 
+    # 엑셀 연동 (pandas)
+    df1 = pd.read_excel('test.xlsx') # 파일명 입력
+    df2 = df1.dropna(subset=['연번']) # NaN 데이터 처리
+    df2_col = df2[['연번', '훈련과정명', '주훈련대상', '심사년도회차', '훈련시작일', '훈련종료일']]
+    print(df2_col)
+
+    # 엑셀 제목 행 입력
     colList = ['연번', '훈련과정명', '주훈련대상', '회차', '훈련시작일', '훈련종료일', '수강평', '만족도']
-    date = '05'
-    # strDate = str(date)
-    with open('HRD-Net_CSAT_'+date+'.csv', 'w', -1, newline='') as f:
+
+    # 오늘 날짜
+    date = '09'
+    strDate = str(date) # 수정 필요
+
+    # CSV 파일 생성
+    with open('HRD-Net_CSAT_'+date+'.csv', 'w', newline='') as f: # newline=''을 통해 개행
         w = csv.writer(f)
         w.writerow(colList)
 
@@ -51,7 +64,7 @@ def crawl():
             # 훈련 기관/과정 검색 클릭
             keyBlck = driver.find_element_by_xpath('//*[@id="searchForm"]/div/div[2]/div[1]/fieldset/div[1]/dl[1]/dd/div[1]').is_displayed()
             chkBox = driver.find_element_by_xpath('//*[@id="keywordType2"]')
-            if not keyBlck: # 작업중
+            if not keyBlck:
                 chkBox.click()
 
             # 훈련기관명 입력
@@ -97,19 +110,23 @@ def crawl():
                 rvw.click()
 
                 # 만족도 Data 추출
-                srch1 = driver.find_element_by_xpath('//*[@id="infoDiv"]/div[1]/dl/dd/span[1]')
-                # print(srch1.text)
-                # for s1 in srch1:
-                #     s1Row = s1.text
-                    # w.writerow(s1RowList)
+                srch1 = driver.find_elements_by_xpath('//*[@id="infoDiv"]/div[1]/dl/dd/span[1]')
+                for s1 in srch1:
+                    rowList1 = []
+                    rowList1.append(s1.text)
+                    # w.writerow(rowList1)
+                    # print(rowList1)
+                    s1_df = pd.DataFrame(s1)
+                    print(s1_df)
 
                 # 수강후기 Data 추출
                 dpth_1_dl = driver.find_element_by_xpath('//*[@id="tbodyEpilogue"]')
                 dpth_2_dd = dpth_1_dl.find_elements_by_tag_name('dd')
                 for dd in dpth_2_dd:
-                    ddRow = dd.text
-                    print(ddRow)
-                #     w.writerow(ddRow)
+                    rowList2 = []
+                    rowList2.append(dd.text)
+                    w.writerow(rowList2)
+                    print(rowList2)
 
             # 최근 열린 탭 종료 후 기존 탭 활성화
             driver.close()
