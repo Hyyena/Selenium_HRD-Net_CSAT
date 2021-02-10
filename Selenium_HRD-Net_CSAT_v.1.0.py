@@ -19,12 +19,13 @@ from datetime import datetime
 # 주소 입력
 URL = 'https://www.hrd.go.kr/hrdp/ti/ptiao/PTIAO0100L.do'
 
-# 창 숨기기
-# driverOpt = webdriver.ChromeOptions()
-# driverOpt.add_argument('headless')
+# 브라우저 옵션
+driverOpt = webdriver.ChromeOptions()
+driverOpt.add_argument('headless') # 창 숨기기
+driverOpt.add_argument('disable-gpu') # GPU 사용 안 함
 
 # 불러오기(Driver & Web Load)
-driver = webdriver.Chrome(executable_path='chromedriver')
+driver = webdriver.Chrome(executable_path='chromedriver', options=driverOpt)
 driver.get(url=URL)
 driver.maximize_window() # 전체화면
 driver.window_handles # Tab List
@@ -52,6 +53,10 @@ def crawl():
     with open('HRD-Net_CSAT_'+date+'.csv', 'w', newline='') as f: # newline=''을 통해 개행
         w = csv.writer(f)
         w.writerow(colList)
+
+        # 비어있는 리스트 생성
+        rowList1 = []
+        rowList2 = []
 
         rowSt = 3 # 행 시작 번호 입력
         while rowSt <= 500:
@@ -94,9 +99,9 @@ def crawl():
             crntTab = driver.window_handles[-1]
             driver.switch_to.window(window_name=crntTab)
 
-            # 명시적 대기 (5초 동안 0.5초씩 element를 찾을 수 있는지 시도)
+            # 명시적 대기 (3초 동안 0.5초씩 element를 찾을 수 있는지 시도)
             try:
-                elem = WebDriverWait(driver, 5).until(
+                elem = WebDriverWait(driver, 3).until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="infoTab4"]/button' ))
                 )
             finally:
@@ -111,27 +116,39 @@ def crawl():
 
                 # 만족도 Data 추출
                 srch1 = driver.find_elements_by_xpath('//*[@id="infoDiv"]/div[1]/dl/dd/span[1]')
-                for s1 in srch1:
-                    rowList1 = []
-                    rowList1.append(s1.text)
-                    # w.writerow(rowList1)
-                    # print(rowList1)
-                    s1_df = pd.DataFrame(s1)
-                    print(s1_df)
+                # for i in srch1:
+                #     rowList1.append(i.text)
 
                 # 수강후기 Data 추출
                 dpth_1_dl = driver.find_element_by_xpath('//*[@id="tbodyEpilogue"]')
                 dpth_2_dd = dpth_1_dl.find_elements_by_tag_name('dd')
-                for dd in dpth_2_dd:
-                    rowList2 = []
-                    rowList2.append(dd.text)
-                    w.writerow(rowList2)
-                    print(rowList2)
+
+                # 수강후기 Data Indexing
+                for i in dpth_2_dd:
+                    rowList2.append(i.text)
+                    if i is dpth_2_dd[-1]: # for문 마지막 배열만 출력
+                        rowList2.append(i.text)
+                        x = []
+                        x.append(i.text)
+                        print(len(x))
+                        # srch1_df = pd.DataFrame(rowList2)
+
+                # 만족도 Data Indexing
+                for i in srch1:
+                    rowList1.append(i.text)
+                    # for j in range(len(rowList2)):
+                        # rowList1.append(i.text)
 
             # 최근 열린 탭 종료 후 기존 탭 활성화
             driver.close()
             firstTab = driver.window_handles[0]
             driver.switch_to.window(window_name=firstTab)
+
+            srch1_df = pd.DataFrame(rowList1)
+            srch2_df = pd.DataFrame(rowList2)
+
+        print(srch1_df)
+        print(srch2_df)
 
 def main():
     crawl()
