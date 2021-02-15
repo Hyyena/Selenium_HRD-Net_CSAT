@@ -46,7 +46,7 @@ def crawl():
     colList = ['연번', '훈련과정명', '주훈련대상', '회차', '훈련시작일', '훈련종료일', '수강평', '만족도']
 
     # 오늘 날짜
-    date = '09'
+    date = '15'
     strDate = str(date) # 수정 필요
 
     # CSV 파일 생성
@@ -64,7 +64,7 @@ def crawl():
             rowSrch = sht['C' + i].value # C열 i번째 셀값
             if rowSrch is None:
                 break
-            rowSt = rowSt + 1
+            rowSt += 1
 
             # 훈련 기관/과정 검색 클릭
             keyBlck = driver.find_element_by_xpath('//*[@id="searchForm"]/div/div[2]/div[1]/fieldset/div[1]/dl[1]/dd/div[1]').is_displayed()
@@ -116,8 +116,8 @@ def crawl():
 
                 # 만족도 Data 추출
                 srch1 = driver.find_elements_by_xpath('//*[@id="infoDiv"]/div[1]/dl/dd/span[1]')
-                # for i in srch1:
-                #     rowList1.append(i.text)
+                for i in srch1:
+                    rowList1.append(i.text)
 
                 # 수강후기 Data 추출
                 dpth_1_dl = driver.find_element_by_xpath('//*[@id="tbodyEpilogue"]')
@@ -126,18 +126,18 @@ def crawl():
                 # 수강후기 Data Indexing
                 for i in dpth_2_dd:
                     rowList2.append(i.text)
+                    x = []
+                    x.append(i.text)
                     if i is dpth_2_dd[-1]: # for문 마지막 배열만 출력
-                        rowList2.append(i.text)
-                        x = []
-                        x.append(i.text)
-                        print(len(x))
+                        print(rowList2)
+                        print(len(rowList2))
                         # srch1_df = pd.DataFrame(rowList2)
 
                 # 만족도 Data Indexing
                 for i in srch1:
                     rowList1.append(i.text)
-                    # for j in range(len(rowList2)):
-                        # rowList1.append(i.text)
+                    for j in range(len(rowList2)):
+                        rowList1.append(i.text)
 
             # 최근 열린 탭 종료 후 기존 탭 활성화
             driver.close()
